@@ -1,30 +1,22 @@
 const Vue = require('vue');
-const renderer = require('vue-server-renderer').createRenderer();
+const VueSSR = require('vue-server-renderer');
+const createApp = require('../app/index.js');
+
+const renderer = VueSSR.createRenderer();
 
 module.exports = function(server) {
     server.get('/', (req, res) => {
-        const app = new Vue({
-            data: {
-                url: req.url
-            },
-            template: `<div>您正在访问的URL是：{{ url }}</div>`
-        });
+        const context = {
+            url: req.url
+        };
+        const app = createApp(context);
         renderer.renderToString(app, (err, html) => {
             if(err) {
                 res.status(500).end('Internal Server Error');
                 return;
             }
-            res.end(`
-<!DOCTYPE html>
-<html lang=zh>
-    <head>
-        <meta charset="utf-8">
-        <title>新标签页</title>
-        <body>${html}</body>
-    </head>
-</html>
-            `)
-        })
+            res.end(html);
+        });
     });
     
 }
