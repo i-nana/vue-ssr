@@ -5,7 +5,7 @@ const createApp = require('../app/index.js');
 const renderer = VueSSR.createRenderer();
 
 module.exports = function(server) {
-    server.get('/', (req, res) => {
+    server.get('*', (req, res) => {
         const context = {
             url: req.url
         };
