@@ -1,6 +1,6 @@
 # VUE 服务器渲染
 
-## 创建&初始化项目
+## 一个简单的服务器渲染（项目创建）
 
 VUE服务器端渲染需要依赖Node环境。
 
@@ -35,7 +35,7 @@ const path = require('path');
 const express = require('express');
 const server = express();
 const Vue = require('vue');
-const renderer = require('vue-server-renderer').createRender();
+const renderer = require('vue-server-renderer').createRenderer();
 
 // 设置静态资源目录
 server.use(express.static(path.join(__dirname, 'public')));
@@ -47,7 +47,7 @@ server.get('*', (req, res) => {
         },
         template: `<div>您现在访问的URL是：{{ url }}</div>`
     });
-    render.renderToString(app, (err, html) => {
+    renderer.renderToString(app, (err, html) => {
         if(err) {
             res.status(500).end('Internal Server Error');
             return;
@@ -69,3 +69,47 @@ server.listen(port, () => {
     console.log('服务已启动，端口号：' + port);
 });
 ```
+
++ 启动服务`node app`，我们就可以访问：[http://localhost:8333/](http://localhost:8333/)了。
+
+我们可以将上述代码中的路由提出到一个单独的文件中**/routes/index.js**。
+
+```javascript
+const Vue = require('vue');
+const renderer = require('vue-server-renderer').createRenderer();
+
+module.exports = function(server) {
+    server.get('*', (req, res) => {
+        const app = new Vue({
+            data: {
+                url: req.url
+            },
+            template: `<div>您正在访问的URL是：{{ url }}</div>`
+        });
+        renderer.renderToString(app, (err, html) => {
+            if(err) {
+                res.status(500).end('Internal Server Error');
+                return;
+            }
+            res.end(`
+<!DOCTYPE html>
+<html lang=zh>
+    <head>
+        <meta charset="utf-8">
+        <title>新标签页</title>
+        <body>${html}</body>
+    </head>
+</html>
+            `);
+        });
+    });
+}
+```
+
+在**app.js**中相应的代码可以修改为:
+
+```javascript
+require('./routes/index')(server);
+```
+
+> [【GitHub：iLikeTree/vue-ssr】- ୧(๑•̀⌄•́๑)૭✧ 好好学习，天天向上](https://github.com/iLikeTree/vue-ssr/commit/18fd697e20ca657bd337d3198d3ce1cd04ffd1f1)
